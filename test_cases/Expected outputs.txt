@@ -1,0 +1,39 @@
+# The order of inventory items may be different
+
+input_01.txt
+~~~~~~~~~~~~~
+Apple: 9
+Peer: 20
+Profit/Loss: $74.00
+
+
+input_02.txt
+~~~~~~~~~~~~~
+Apple: 15
+Orange: 15
+Profit/Loss: $-21.50
+
+
+
+input_03.txt
+~~~~~~~~~~~~~
+Apple: 6
+Profit/Loss: $6.50
+
+
+
+input_04.txt
+~~~~~~~~~~~~~
+Apple: 8
+Banana: 25
+Profit/Loss: $-10.30
+
+
+
+input_05.txt
+~~~~~~~~~~~~~
+Apple: 30
+Profit/Loss: NA 	# if the ouput is NA, the number of items does not matter
+
+
+
