@@ -54,6 +54,7 @@ def removeStockFIFO(item, qty):
         qty -= take
         if batch["qty"] == 0:
             currentStock[item].pop(0)
+            continue
     return removed
 
 
@@ -62,6 +63,12 @@ def order(item, num, price):
     global completedOrders
     num, price = int(num), float(price)
 
+    available_qty = sum(batch["qty"] for batch in currentStock.get(item, []))
+    if num > available_qty:
+        raise ValueError(
+            f"Cannot order {num} {item}(s) -- only {available_qty} in stock."
+        )
+
     finalUnitPrice = price
     if item in discounts and discounts[item]:
         finalUnitPrice *= (1 - discounts[item][-1] / 100)
@@ -69,7 +76,7 @@ def order(item, num, price):
     removed = removeStockFIFO(item, num)
     orderProfit = 0
 
-    for b in removed:
+    for b in reversed(removed):
         margin = (finalUnitPrice - b["price"]) * b["qty"]
         orderProfit += margin
 
@@ -102,21 +109,33 @@ def returnItem(item, qty, sell_price):
     remaining = int(qty)
     refundCost = 0.0
 
-    i = len(completedOrders) - 1
-    while i >= 0 and remaining > 0:
-        order = completedOrders[i]
 
-        if order["item"] == item:
-            take_qty = min(order["qty"], remaining)
+    completedOrders.reverse()
 
-            refundCost += (take_qty * order["disc_price"]) - (take_qty * order['cost'])
+    matching_orders = [
+        order for order in completedOrders
+        if order["item"] == item and float(order['price_paid']) == float(sell_price)
+    ]
 
-            remaining -= take_qty
+    total_sold = sum(o["qty"] for o in matching_orders)
+    print(total_sold)
 
-        i -= 1
+    if remaining > total_sold:
+        raise ValueError(
+            f"Cannot return {remaining} {item}(s) at {float(sell_price):.2f}\n-- only {total_sold} were sold at that price."
+        )
+
+    for order in matching_orders:
+        if remaining <= 0:
+            break
+        take_qty = min(order["qty"], remaining)
+        refundCost += (take_qty * order["disc_price"]) - (take_qty * order['cost'])
+        remaining -= take_qty
+
     storeCosts += refundCost
-
     print(f"RETURN {item} {qty} {sell_price}\nprofit impact -{refundCost:.2f}")
+    completedOrders.reverse()
+
 
 
 
@@ -192,7 +211,3 @@ def main(file):
 
 if __name__ == "__main__":
     main('./test_cases/input_01.txt')
-    main('./test_cases/input_02.txt')
-    main('./test_cases/input_03.txt')
-    main('./test_cases/input_04.txt')
-    main('./test_cases/input_05.txt')
